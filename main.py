@@ -25,7 +25,7 @@ def process_in_background(transaction_id: str):
     thread.start()
 
 
-@app.get("/", response_model=HealthCheckResponse)
+@app.get("/", response_model=HealthCheckResponse, methods=["GET", "HEAD"])
 async def health_check():
     """Health check endpoint"""
     return HealthCheckResponse(
