@@ -36,7 +36,7 @@ A production-ready FastAPI service for handling payment transaction webhooks wit
 
 ## 🧪 Testing Instructions
 
-### Option 1: Automated Test Suite
+### Option 1: Automated Test Suite (Local)
 Run the comprehensive test suite that validates all functionality:
 
 ```bash
@@ -52,7 +52,7 @@ python test_service.py
 
 **Expected output:** All 5 tests should pass with timing metrics.
 
-### Option 2: Interactive Demo
+### Option 2: Interactive Demo (Local)
 Run the interactive demonstration to see the service in action:
 
 ```bash
@@ -66,44 +66,61 @@ python demo.py
 4. Transaction status queries
 5. List all transactions
 
-### Option 3: Manual Testing with curl
+### Option 3: Test Live Service
 
-**1. Health Check:**
-```bash
-curl http://localhost:8000/
+**Using PowerShell (Recommended for Windows):**
+
+```powershell
+# 1. Health Check
+Invoke-WebRequest "https://walnutfolks-backend.onrender.com/" | ConvertFrom-Json
+
+# 2. Send webhook
+$body = @{
+    transaction_id = "txn_test_$(Get-Random)"
+    amount = 100.50
+    currency = "USD"
+    status = "completed"
+    customer_id = "cust_456"
+    timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+} | ConvertTo-Json
+
+$response = Invoke-WebRequest -Uri "https://walnutfolks-backend.onrender.com/v1/webhooks/transactions" `
+  -Method POST `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body $body
+
+$response.Content | ConvertFrom-Json
+
+# 3. Wait 30 seconds for processing
+Start-Sleep -Seconds 30
+
+# 4. Check transaction status
+Invoke-WebRequest "https://walnutfolks-backend.onrender.com/v1/transactions/txn_test_123" | ConvertFrom-Json
+
+# 5. List all transactions
+Invoke-WebRequest "https://walnutfolks-backend.onrender.com/v1/transactions" | ConvertFrom-Json
 ```
-Expected: `{"status":"healthy","version":"1.0.0"}`
 
-**2. Send a webhook:**
+**Using curl (Any terminal):**
+
 ```bash
-curl -X POST http://localhost:8000/v1/webhooks/transactions \
-  -H "Content-Type: application/json" \
-  -d "{\"transaction_id\":\"txn_123\",\"amount\":100.50,\"currency\":\"USD\",\"status\":\"completed\",\"customer_id\":\"cust_456\",\"timestamp\":\"2025-12-30T10:00:00Z\"}"
-```
-Expected: `202 Accepted` response in < 500ms with `{"status":"accepted","message":"Webhook received and queued for processing"}`
+# 1. Health Check
+curl https://walnutfolks-backend.onrender.com/
 
-**3. Check transaction status (wait 30+ seconds after sending webhook):**
-```bash
-curl http://localhost:8000/v1/transactions/txn_123
-```
-Expected: Transaction details with `"status":"processed"`
+# 2. Send webhook (single line)
+curl -X POST https://walnutfolks-backend.onrender.com/v1/webhooks/transactions -H "Content-Type: application/json" -d "{\"transaction_id\":\"txn_live_123\",\"amount\":100.50,\"currency\":\"USD\",\"status\":\"completed\",\"customer_id\":\"cust_456\",\"timestamp\":\"2025-12-30T10:00:00Z\"}"
 
-**4. List all transactions:**
-```bash
-curl http://localhost:8000/v1/transactions
-```
-Expected: Array of all processed transactions
+# 3. Wait 30+ seconds then check status
+curl https://walnutfolks-backend.onrender.com/v1/transactions/txn_live_123
 
-**5. Test idempotency (send same webhook 3 times):**
-```bash
-# Send the same transaction_id multiple times
-curl -X POST http://localhost:8000/v1/webhooks/transactions \
-  -H "Content-Type: application/json" \
-  -d "{\"transaction_id\":\"txn_duplicate\",\"amount\":50.00,\"currency\":\"USD\",\"status\":\"completed\",\"customer_id\":\"cust_789\",\"timestamp\":\"2025-12-30T10:00:00Z\"}"
-
-# Wait 30+ seconds, then check - should only have ONE transaction
-curl http://localhost:8000/v1/transactions/txn_duplicate
+# 4. List all transactions
+curl https://walnutfolks-backend.onrender.com/v1/transactions
 ```
+
+**Using Browser:**
+- **Health Check:** https://walnutfolks-backend.onrender.com/
+- **Interactive API Docs:** https://walnutfolks-backend.onrender.com/docs
+- **Alternative Docs:** https://walnutfolks-backend.onrender.com/redoc
 
 ## 📊 API Endpoints
 
@@ -208,25 +225,56 @@ curl http://localhost:8000/v1/transactions/txn_duplicate
    - Timestamps for audit trail
    - Flexible schema supporting multiple currencies and statuses
 
-## 🐳 Deployment Options
+## � Live Service
 
-### Docker
-```bash
-docker-compose up
+**Your service is now live on Render:**
 ```
-Runs service in container with health checks.
-
-### Railway (Recommended for Production)
-1. Connect GitHub repository to Railway
-2. Railway auto-detects Dockerfile and deploys
-3. Get public URL: `https://your-service.up.railway.app`
-4. (Optional) Add PostgreSQL database via Railway dashboard
-
-### Heroku
-```bash
-git push heroku main
+🎉 https://walnutfolks-backend.onrender.com
 ```
-Uses Procfile for deployment configuration.
+
+### Quick Test
+```bash
+# Health check
+curl https://walnutfolks-backend.onrender.com/
+
+# Interactive API docs
+https://walnutfolks-backend.onrender.com/docs
+```
+
+## 🐳 Deployment (Render)
+
+Your service is already deployed on **Render** and live in production!
+
+### Deployment Details
+- **Platform:** [Render.com](https://render.com)
+- **URL:** https://walnutfolks-backend.onrender.com
+- **Auto-Deploy:** Connected to GitHub (pushes automatically redeploy)
+- **Database:** SQLite (dev) / PostgreSQL (optional)
+
+### How It's Deployed
+1. GitHub repository connected to Render
+2. Render auto-detects Dockerfile
+3. Builds and deploys on every git push
+4. Service is automatically restarted
+5. Free tier available with some limitations
+
+### Manual Redeployment (if needed)
+```bash
+# Push to GitHub to trigger auto-redeploy
+git add .
+git commit -m "Update message"
+git push origin main
+```
+
+### Add PostgreSQL Database (Optional)
+1. Go to [Render Dashboard](https://dashboard.render.com)
+2. Click "New +" → "PostgreSQL"
+3. Create database
+4. Copy connection string
+5. Add as environment variable: `DATABASE_URL=postgresql://...`
+6. Redeploy service
+
+---
 
 ## 🔧 Environment Variables
 
