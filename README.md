@@ -269,18 +269,3 @@ The service logs all operations:
 
 View logs in the terminal where the service is running.
 
-## 🛠️ Troubleshooting
-
-**Service won't start:**
-- Ensure Python 3.13.7 is installed: `python --version`
-- Check all dependencies installed: `pip list`
-- Verify port 8000 is available
-
-**SQLAlchemy errors:**
-- Use exactly version 2.0.35: `pip install sqlalchemy==2.0.35`
-- Python 3.13 requires this specific version
-
-**Tests failing:**
-- Ensure service is running: `python main.py`
-- Wait 30+ seconds for processing test
-- Check `transactions.db` file exists
